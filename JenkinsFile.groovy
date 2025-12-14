@@ -53,9 +53,28 @@ pipeline {
         }
         stage('Security Scans') {
             steps {
-                bat '''
-                    echo Run security scans (static code analysis and vulnerability checker)
-                '''
+                script {
+                    def status = "success"
+                    try {
+                        withCredentials([
+                            string(credentialsId: 'nvd_api_key', variable: 'NVD_API_KEY'),
+                            file(credentialsId: 'mvn_settings', variable: 'MAVEN_SETTINGS_FILE')
+                        ]){
+                            bat """
+                                mvn -s ${MAVEN_SETTINGS_FILE} org.owasp:dependency-check-maven:check -DnvdApiKey=${NVD_API_KEY}
+                            """
+                        }
+                    } catch (err) {
+                        echo "Dependency Check failed with error: ${err}"
+                        status = "failure"
+                    } finally {
+                        dependencyCheckPublisher pattern: 'target/dependency-check-report.xml', failedTotalCritical: 1
+                        if (status == 'failure') {
+                            currentBuild.result = 'UNSTABLE'
+                            throw new Exception("Dependency Check failed.") 
+                        }
+                    }
+                }
             }
         }
         stage('Create Docker Image') {
