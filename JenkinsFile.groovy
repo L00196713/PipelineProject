@@ -12,6 +12,11 @@ pipeline {
     environment {
         GIT_REF = "${params['Git Reference']}"
     }
+    tools {
+        maven 'Maven-3.9.11'
+        jdk 'Java-21'
+        git 'git'
+    }
     stages {
         stage('Initialize') {
             steps {
@@ -22,23 +27,28 @@ pipeline {
         }
         stage('Source Control Management') {
             steps {
-                bat '''
-                    echo Clone required repositories (build source, test code, terraform scripts, etc)
-                '''
+                git([
+                    branch: env.GIT_REF, 
+                    changelog: false, 
+                    credentialsId: 'Git-SSH-Key', 
+                    poll: false, 
+                    url: 'git@github.com:L00196713/SimpleJavaProject.git'
+                ])
             }
         }
         stage('Build') {
             steps {
                 bat '''
-                    echo Build the application
+                    mvn clean package -DskipTests
                 '''
             }
         }
         stage('Test') {
             steps {
                 bat '''
-                    echo Run unit tests on the newly built package
+                    mvn test
                 '''
+                junit 'target/surefire-reports/*.xml'
             }
         }
         stage('Security Scans') {
@@ -66,7 +76,7 @@ pipeline {
     }
     post {
         always {
-            echo "I can add any cleanup or job summary's here"
+            deleteDir()
         }
         failure {
             echo "I could put something like slack notifications here"
