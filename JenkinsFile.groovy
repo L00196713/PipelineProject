@@ -22,9 +22,13 @@ pipeline {
         }
         stage('Source Control Management') {
             steps {
-                bat '''
-                    echo Clone required repositories (build source, test code, terraform scripts, etc)
-                '''
+                git([
+                    branch: 'main', 
+                    changelog: false, 
+                    credentialsId: 'Git-SSH-Key', 
+                    poll: false, 
+                    url: 'git@github.com:L00196713/SimpleJavaProject.git'
+                ])
             }
         }
         stage('Build') {
