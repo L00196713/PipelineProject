@@ -23,7 +23,7 @@ pipeline {
         stage('Source Control Management') {
             steps {
                 git([
-                    branch: 'main', 
+                    branch: env.GIT_REF, 
                     changelog: false, 
                     credentialsId: 'Git-SSH-Key', 
                     poll: false, 
