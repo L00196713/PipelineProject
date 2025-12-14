@@ -12,6 +12,11 @@ pipeline {
     environment {
         GIT_REF = "${params['Git Reference']}"
     }
+    tools {
+        maven 'Maven-3.9.11'
+        jdk 'Java-21'
+        git 'git'
+    }
     stages {
         stage('Initialize') {
             steps {
@@ -34,7 +39,8 @@ pipeline {
         stage('Build') {
             steps {
                 bat '''
-                    echo Build the application
+                    java -version
+                    mvn -version
                 '''
             }
         }
@@ -70,7 +76,7 @@ pipeline {
     }
     post {
         always {
-            echo "I can add any cleanup or job summary's here"
+            deleteDir()
         }
         failure {
             echo "I could put something like slack notifications here"
