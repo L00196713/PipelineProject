@@ -39,16 +39,16 @@ pipeline {
         stage('Build') {
             steps {
                 bat '''
-                    java -version
-                    mvn -version
+                    mvn clean package -DskipTests
                 '''
             }
         }
         stage('Test') {
             steps {
                 bat '''
-                    echo Run unit tests on the newly built package
+                    mvn test
                 '''
+                junit 'target/surefire-reports/*.xml'
             }
         }
         stage('Security Scans') {
